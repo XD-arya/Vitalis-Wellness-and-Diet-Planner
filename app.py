@@ -5,12 +5,15 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+import os
+
 # ── DB CONNECTION ───────────────────────────
 db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="#Your_MySQL Password",
-    database="wellness_app"
+    host=os.getenv("MYSQLHOST", "localhost"),
+    user=os.getenv("MYSQLUSER", "root"),
+    password=os.getenv("MYSQLPASSWORD", "#A2r7y3a6"),
+    database=os.getenv("MYSQLDATABASE", "wellness_app"),
+    port=int(os.getenv("MYSQLPORT", 3306))
 )
 
 cursor = db.cursor()
@@ -161,6 +164,7 @@ def get_dashboard(user_id):
 
 # ── RUN ────────────────────────────────────
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
 
 # terminal : python app.py for starting flask server
