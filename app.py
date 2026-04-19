@@ -17,10 +17,12 @@ def get_db_connection():
         port=int(os.getenv("MYSQL_PORT") or os.getenv("MYSQLPORT", 3306))
     )
 
+from flask import send_file
+
 # ── HOME ───────────────────────────────────
 @app.route("/")
 def home():
-    return "Wellness App Backend Running!"
+    return send_file("wellness_app.html")
 
 # ── REGISTER ───────────────────────────────
 @app.route("/register", methods=["POST"])
