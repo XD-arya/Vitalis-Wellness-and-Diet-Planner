@@ -7,16 +7,15 @@ CORS(app)
 
 import os
 
-# ── DB CONNECTION ───────────────────────────
-db = mysql.connector.connect(
-    host=os.getenv("MYSQLHOST", "localhost"),
-    user=os.getenv("MYSQLUSER", "root"),
-    password=os.getenv("MYSQLPASSWORD", "#A2r7y3a6"),
-    database=os.getenv("MYSQLDATABASE", "wellness_app"),
-    port=int(os.getenv("MYSQLPORT", 3306))
-)
-
-cursor = db.cursor()
+# ── DB CONNECTION HELPER ──────────────────────
+def get_db_connection():
+    return mysql.connector.connect(
+        host=os.getenv("MYSQLHOST", "localhost"),
+        user=os.getenv("MYSQLUSER", "root"),
+        password=os.getenv("MYSQLPASSWORD", "#A2r7y3a6"),
+        database=os.getenv("MYSQLDATABASE", "wellness_app"),
+        port=int(os.getenv("MYSQLPORT", 3306))
+    )
 
 # ── HOME ───────────────────────────────────
 @app.route("/")
@@ -36,12 +35,16 @@ def register():
         height = data["height"]
         weight = data["weight"]
 
+        db = get_db_connection()
+        cursor = db.cursor()
         query = """
         INSERT INTO users (name, email, password, age, height, weight)
         VALUES (%s, %s, %s, %s, %s, %s)
         """
         cursor.execute(query, (name, email, password, age, height, weight))
         db.commit()
+        cursor.close()
+        db.close()
 
         return jsonify({"message": "User registered successfully!"})
 
@@ -57,9 +60,14 @@ def login():
     email = data["email"]
     password = data["password"]
 
+    db = get_db_connection()
+    cursor = db.cursor()
     query = "SELECT * FROM users WHERE email = %s AND password = %s"
     cursor.execute(query, (email, password))
     user = cursor.fetchone()
+    
+    cursor.close()
+    db.close()
 
     if user:
         return jsonify({
@@ -81,6 +89,8 @@ def add_health_log():
     data = request.json
 
     try:
+        db = get_db_connection()
+        cursor = db.cursor()
         query = """
         INSERT INTO health_logs (user_id, date, water_intake, steps, sleep_hours)
         VALUES (%s, %s, %s, %s, %s)
@@ -93,6 +103,9 @@ def add_health_log():
             data["sleep_hours"]
         ))
         db.commit()
+        
+        cursor.close()
+        db.close()
 
         return jsonify({"message": "Health log added successfully!"})
 
@@ -106,6 +119,8 @@ def add_diet_log():
     data = request.json
 
     try:
+        db = get_db_connection()
+        cursor = db.cursor()
         query = """
         INSERT INTO diet_logs 
         (user_id, date, food_name, total_calories, protein, carbs, fats)
@@ -121,6 +136,9 @@ def add_diet_log():
             data["fats"]
         ))
         db.commit()
+        
+        cursor.close()
+        db.close()
 
         return jsonify({"message": "Diet log added successfully!"})
 
@@ -132,6 +150,8 @@ def add_diet_log():
 @app.route("/dashboard/<int:user_id>", methods=["GET"])
 def get_dashboard(user_id):
 
+    db = get_db_connection()
+    cursor = db.cursor()
     # Health logs
     cursor.execute("""
         SELECT date, water_intake, steps, sleep_hours 
@@ -155,6 +175,9 @@ def get_dashboard(user_id):
         d = row[0]
         date_str = d.strftime('%Y-%m-%d') if hasattr(d, 'strftime') else str(d)
         diet_data.append((date_str,) + row[1:])
+        
+    cursor.close()
+    db.close()
 
     return jsonify({
         "health_logs": health_data,
