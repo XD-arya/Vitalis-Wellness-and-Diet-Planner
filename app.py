@@ -10,11 +10,11 @@ import os
 # ── DB CONNECTION HELPER ──────────────────────
 def get_db_connection():
     return mysql.connector.connect(
-        host=os.getenv("MYSQLHOST", "localhost"),
-        user=os.getenv("MYSQLUSER", "root"),
-        password=os.getenv("MYSQLPASSWORD", "#A2r7y3a6"),
-        database=os.getenv("MYSQLDATABASE", "wellness_app"),
-        port=int(os.getenv("MYSQLPORT", 3306))
+        host=os.getenv("MYSQL_HOST") or os.getenv("MYSQLHOST", "localhost"),
+        user=os.getenv("MYSQL_USER") or os.getenv("MYSQLUSER", "root"),
+        password=os.getenv("MYSQL_PASSWORD") or os.getenv("MYSQLPASSWORD", "#A2r7y3a6"),
+        database=os.getenv("MYSQL_DATABASE") or os.getenv("MYSQLDATABASE", "wellness_app"),
+        port=int(os.getenv("MYSQL_PORT") or os.getenv("MYSQLPORT", 3306))
     )
 
 # ── HOME ───────────────────────────────────
